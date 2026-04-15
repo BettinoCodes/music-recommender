@@ -327,108 +327,98 @@ Another issue is when the system quietly ignores missing preferences. If a user 
 
 ---
 
-## 7. `model_card_template.md`
+## 7. Model Card
 
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
+### 1. Model Name
 
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
+**VibeFinder 1.0**
 
 ---
 
-## 2. Intended Use
+### 2. Intended Use
 
-- What is this system trying to do
-- Who is it for
+VibeFinder 1.0 suggests up to five songs from an 18-song catalog based on what a user tells it they are in the mood for. You give it a genre, a mood, an energy level, and whether you prefer acoustic or electronic sounds, and it finds the best matches.
 
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
+It is built for classroom exploration to understand how real recommendation systems think. It is not meant for real users on a real platform. It works best as a learning tool for seeing how math and rules can produce something that feels like a personalized suggestion.
 
 ---
 
-## 3. How It Works (Short Explanation)
+### 3. How It Works (Short Explanation)
 
-Describe your scoring logic in plain language.
+Think of it like handing a DJ a sticky note that says "I want chill lofi music, not too energetic, preferably acoustic." The DJ flips through every song in their crate and mentally scores each one based on how well it matches your note. The song with the highest score gets played first.
 
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
+VibeFinder does the same thing. For every song in the catalog it asks four questions:
 
-Try to avoid code in this section, treat it like an explanation to a non programmer.
+Does the genre match what the user wants? If yes, that song gets 2 points. Genre matters the most because a jazz fan and a metal fan almost never want the same thing regardless of mood or energy.
 
----
+Does the mood match? If yes, the song gets 1 point. Mood is important but a little more flexible than genre. Someone who wants "chill" might also enjoy "relaxed."
 
-## 4. Data
+How close is the energy level? Energy is measured on a scale from 0 to 1. The closer a song's energy is to what the user is looking for, the more points it earns, up to 1 point. A perfect energy match gives the full point. A song that is way off gives almost nothing.
 
-Describe your dataset.
+Is the acoustic style a match? If the user prefers acoustic music and the song is mostly acoustic, it earns a small bonus of half a point.
 
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
+All the points get added up into a single score. The five songs with the highest scores are the recommendations.
 
 ---
 
-## 5. Strengths
+### 4. Data
 
-Where does your recommender work well
+The catalog has 18 songs stored in a CSV file. The original starter file had 10 songs and 8 more were added to cover genres and moods that were missing.
 
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
+The catalog spans 15 genres including pop, lofi, rock, jazz, ambient, synthwave, indie pop, r&b, country, classical, edm, hip-hop, metal, reggae, and folk. Moods covered include happy, chill, intense, relaxed, focused, moody, sad, nostalgic, peaceful, euphoric, confident, and aggressive.
 
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
+The data mostly reflects a Western popular music taste. Global genres like Afrobeats, bossa nova, cumbia, or K-pop are not represented at all. If someone asked for any of those, the system would silently ignore their genre preference and fall back to mood and energy only. The dataset is also too small to give users real variety since most genres have only one or two songs.
 
 ---
 
-## 7. Evaluation
+### 5. Strengths
 
-How did you check your system
+The recommender works best when the user has a clear and common taste profile that already exists in the catalog. The Chill Lofi profile was the strongest example. The top three results were all genuine matches and the explanations made perfect sense. Library Rain and Midnight Coding both scored above 4.4, both were lofi, both were chill, and both had acoustic production that matched the user's preference.
 
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
+The system is also very transparent. Every recommendation comes with a plain English reason like "genre match 'rock' (+2.0); mood match 'intense' (+1.0); energy proximity 0.99." A user can immediately see why they got a result and adjust their profile if something feels off. Most real recommendation systems are black boxes that give no explanation at all.
 
-You do not need a numeric metric, but if you used one, explain what it measures.
+It also works without any listening history. A brand new user who can describe what they want in words gets meaningful results right away, which is something collaborative filtering systems struggle with.
 
 ---
 
-## 8. Future Work
+### 6. Limitations and Bias
 
-If you had more time, how would you improve this recommender
+The biggest problem is catalog size. With only 18 songs, most genres have a single representative. When a user asks for jazz and there is only one jazz song, that song wins automatically with no real competition. The system looks confident but it has no actual choice.
 
-Examples:
+The genre weight creates a second problem. A genre match is worth 2 points, which is more than a perfect mood match and a perfect energy match combined. That means a song in the right genre but wrong mood will almost always beat a song in the wrong genre that is a near perfect match on everything else. This can surface tonally wrong results, like a high-energy workout track appearing for someone who just wants a happy and relaxed pop song.
 
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
+The adversarial "High-Energy Sad" profile exposed the worst case. The only sad song in the catalog has low energy. The system correctly recommended it first, but songs 2 through 5 were a rock track, a pop track, an EDM drop, and a metal song that had nothing to do with sadness. The algorithm did nothing wrong. The catalog just did not have what the user needed.
+
+If used in a real product this would be genuinely unfair to users whose taste falls outside the dominant genres in the dataset. They would get worse recommendations than everyone else and never know why.
 
 ---
 
-## 9. Personal Reflection
+### 7. Evaluation
 
-A few sentences about what you learned:
+Six different user profiles were tested: three standard and three adversarial designed to stress test the system.
 
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
+The standard profiles were High-Energy Pop, Chill Lofi with acoustic preference, and Deep Intense Rock. All three produced results that matched intuition. Storm Runner was the obvious winner for the rock profile and Library Rain was the right answer for the lofi profile.
 
+The adversarial profiles were more revealing. The High-Energy Sad profile showed the catalog gap problem. The Unknown Genre profile showed that the system silently drops a preference with no warning to the user. The Mid-Everything Jazz profile showed that having one lonely song in a genre creates a false sense of certainty.
+
+A weight-shift experiment was also run where the genre bonus was halved and the energy weight was doubled. For the Happy Pop profile this caused a more intuitively correct song to move up in the rankings. For the Sad profile it made things worse. Two automated tests were written and both pass consistently.
+
+---
+
+### 8. Future Work
+
+The most impactful improvement would be adding valence to the score. Valence measures musical positiveness and it is already in the dataset unused. Adding it would immediately solve the High-Energy Sad problem by distinguishing between songs that are energetic and happy versus energetic and dark.
+
+Soft genre matching would also help a lot. Right now genre matching is a simple yes or no. Folk and country share a lot of DNA, as do metal and rock, and lofi and ambient, but the system treats them as completely unrelated. A genre similarity map that gives partial credit for nearby genres would make the catalog feel much bigger without adding a single song.
+
+A simple feedback loop would be the most interesting addition. After showing results, ask the user one question: did this match your vibe? Use the answer to nudge the weights slightly for next time. That is the seed of how real recommendation systems actually work.
+
+---
+
+### 9. Personal Reflection
+
+The most surprising thing was how quickly the system fell apart on the adversarial profiles. For the standard profiles it felt almost magical, like it actually understood what kind of music a person would want. But the moment you gave it a profile the catalog was not built for, the results after the first pick were completely useless. That gap between "feels smart" and "actually smart" is the most important thing I took away from this project. A recommender is only as good as the data behind it. The algorithm is just the decision layer on top.
+
+Building this changed how I think about Spotify and YouTube recommendations. Those systems feel like they know you, but a big part of that feeling is just the explanation attached to each result. "Because you listened to X" reads like understanding even when the underlying math is a simple scoring function not unlike this one.
+
+Human judgment still matters in at least two places even when the model seems to be working well. Someone has to decide what goes in the catalog in the first place, and those choices carry cultural assumptions that no algorithm can fix on its own. Someone also has to decide how much weight genre gets versus mood versus energy. Those weights encode values and priorities and there is no objectively correct answer. The model just executes whatever a human decided upfront.
