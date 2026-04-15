@@ -315,16 +315,15 @@ Full model card: [**model_card.md**](model_card.md)
 
 ### What I learned about how recommenders turn data into predictions
 
-Building VibeFinder made it clear how much hidden work sits behind "you might also like." The scoring formula is intuitive to design, but the moment you run it against a real catalog — even a tiny one — edge cases appear: genres not in the dataset, conflicting preferences, and single-representative genres that give the system false confidence. A recommender is only as good as the inventory behind it. Rules and weights are just the decision layer. If the catalog does not contain what the user needs, the algorithm cannot invent it.
+Building VibeFinder showed me that a lot of hidden work goes into “you might also like” recommendations. It is easy to design a scoring formula, but once you test it on real data, even a small set, problems appear. Some genres might be missing, preferences can conflict, and having only one song in a genre can make the system seem more confident than it really is. In the end, a recommender is only as good as the data it has. The rules only organize decisions. If the data is not there, the system cannot create it.
 
-What was most surprising is that just three signals (genre, mood, energy) produced results that *felt* intuitive for well-defined profiles. There was no machine learning, no training data — just a sticky note and arithmetic. The explanation attached to each result ("genre match 'lofi' (+2.0); energy proximity 0.97") made it read like a reason rather than a calculation, which is probably a large part of why recommendation captions on real apps feel trustworthy even when the logic underneath is simpler than it looks.
+What surprised me most is that just three factors, genre, mood, and energy, were enough to give results that felt accurate for clear user preferences. There was no machine learning involved, just simple math. Adding explanations like “genre match ‘lofi’ (+2.0)” made the results feel more trustworthy, even though the logic was simple. This is likely why real apps feel reliable. They explain recommendations in a way that makes sense to users.
 
 ### Where bias or unfairness could show up
 
-The clearest bias is **catalog sparsity masquerading as confidence**. When there is only one jazz song in the 18-song catalog, VibeFinder scores it 3.87 while the next result scores 0.98 — a nearly 3-point gap that looks like certainty but is just the absence of alternatives. In a real product, this pattern could quietly disadvantage users who listen to niche or underrepresented genres: their recommendations would be repetitive (the same one or two songs every time) while mainstream-genre users enjoy genuine variety.
+One major issue is when limited data looks like confidence. For example, if there is only one jazz song in a small catalog, it might score much higher than everything else. This is not because it is the best match, but because there are no alternatives. In a real system, this could unfairly affect users who like niche genres. They would keep seeing the same few recommendations, while users who like popular genres get more variety.
 
-A second risk is **silent fallback**. When a user requests a genre not in the catalog (e.g., bossa nova), the system ignores the preference entirely and falls back to mood + energy with no warning. A real user would have no idea their genre request was dropped. At scale this creates invisible filter bubbles: users from musical cultures not represented in the training data get recommendations that simply do not reflect their taste, and the system never tells them why.
-
+Another issue is when the system quietly ignores missing preferences. If a user asks for a genre that is not in the catalog, such as bossa nova, the system ignores that request and uses other factors without telling the user. This can create a poor experience, especially for users whose tastes are not well represented, because they will not understand why the recommendations do not match what they asked for.
 
 ---
 
